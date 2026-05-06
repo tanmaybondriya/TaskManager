@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/server/config/db";
-import { deleteProject, getProjectForUser, updateProject } from "@/server/services/projectService";
+import {
+  deleteProject,
+  getProjectForUser,
+  updateProject,
+} from "@/server/services/projectService";
 import { handleApiError } from "@/server/utils/apiResponse";
 import { requireUser } from "@/server/utils/auth";
 
 type Context = {
-  params: Promise<{ projectId: string }>;
+  params: { projectId: string };
 };
 
 const updateProjectSchema = z
@@ -21,7 +25,7 @@ export async function GET(request: NextRequest, context: Context) {
   try {
     await connectDb();
     const user = requireUser(request);
-    const { projectId } = await context.params;
+    const { projectId } = context.params;
     const project = await getProjectForUser(projectId, user.id);
     return NextResponse.json({ project });
   } catch (error) {
@@ -34,7 +38,11 @@ export async function PATCH(request: NextRequest, context: Context) {
     await connectDb();
     const user = requireUser(request);
     const { projectId } = await context.params;
-    const project = await updateProject(projectId, user.id, updateProjectSchema.parse(await request.json()));
+    const project = await updateProject(
+      projectId,
+      user.id,
+      updateProjectSchema.parse(await request.json()),
+    );
     return NextResponse.json({ project });
   } catch (error) {
     return handleApiError(error);

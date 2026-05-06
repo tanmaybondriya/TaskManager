@@ -6,11 +6,14 @@ const projectSchema = new Schema(
     key: { type: String, required: true, uppercase: true, trim: true },
     description: { type: String, default: "" },
     owner: { type: Types.ObjectId, ref: "User", required: true, index: true },
+    members: [{ type: Types.ObjectId, ref: "User" }],
   },
   { timestamps: true },
 );
 
 projectSchema.index({ owner: 1, key: 1 }, { unique: true });
 
-export type ProjectDocument = InferSchemaType<typeof projectSchema> & { _id: string };
+export type ProjectDocument = InferSchemaType<typeof projectSchema> & {
+  _id: string;
+};
 export const Project = models.Project || model("Project", projectSchema);

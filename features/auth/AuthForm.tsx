@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 
 type Props = {
@@ -17,7 +17,7 @@ export function AuthForm({ mode }: Props) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(event: FormEvent) {
+  async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError("");
     setLoading(true);
@@ -25,7 +25,9 @@ export function AuthForm({ mode }: Props) {
     try {
       await apiFetch(`/auth/${mode}`, {
         method: "POST",
-        body: JSON.stringify(mode === "register" ? { name, email, password } : { email, password }),
+        body: JSON.stringify(
+          mode === "register" ? { name, email, password } : { email, password },
+        ),
       });
       router.push("/dashboard");
     } catch (err) {
@@ -83,7 +85,11 @@ export function AuthForm({ mode }: Props) {
             />
           </label>
 
-          {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && (
+            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          )}
 
           <button
             className="w-full rounded-md bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
@@ -96,7 +102,10 @@ export function AuthForm({ mode }: Props) {
 
         <p className="mt-5 text-center text-sm text-slate-600">
           {isRegister ? "Already have an account?" : "Need an account?"}{" "}
-          <Link className="font-semibold text-blue-700" href={isRegister ? "/login" : "/register"}>
+          <Link
+            className="font-semibold text-blue-700"
+            href={isRegister ? "/login" : "/register"}
+          >
             {isRegister ? "Login" : "Register"}
           </Link>
         </p>
