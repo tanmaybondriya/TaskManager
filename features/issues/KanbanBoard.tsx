@@ -1,6 +1,16 @@
 "use client";
 
-import { DndContext, DragEndEvent, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  closestCorners,
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { CalendarDays } from "lucide-react";
 import type { BoardItem, Status } from "@/types";
@@ -41,6 +51,7 @@ function TaskCard({ item, onOpen }: { item: BoardItem; onOpen: (item: BoardItem)
 
   const style = {
     transform: CSS.Translate.toString(transform),
+    touchAction: "none",
   };
 
   const isDefault = "isDefault" in item && item.isDefault === true;
@@ -82,7 +93,7 @@ function TaskCard({ item, onOpen }: { item: BoardItem; onOpen: (item: BoardItem)
       </div>
 
       <button
-        className="mt-3 w-full cursor-grab rounded-md border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-500 active:cursor-grabbing"
+        className="mt-3 w-full touch-none select-none cursor-grab rounded-md border border-slate-200 px-2 py-2 text-xs font-semibold text-slate-500 active:cursor-grabbing"
         type="button"
         {...listeners}
         {...attributes}
@@ -94,7 +105,10 @@ function TaskCard({ item, onOpen }: { item: BoardItem; onOpen: (item: BoardItem)
 }
 
 export function KanbanBoard({ items, onMove, onOpen }: Props) {
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
+  );
 
   function handleDragEnd(event: DragEndEvent) {
     const targetStatus = event.over?.id as Status | undefined;
@@ -108,8 +122,8 @@ export function KanbanBoard({ items, onMove, onOpen }: Props) {
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="grid min-w-[780px] grid-cols-3 gap-4 lg:min-w-0">
+    <DndContext collisionDetection={closestCorners} sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="grid grid-cols-1 gap-4 md:min-w-[780px] md:grid-cols-3 lg:min-w-0">
         {columns.map((status) => {
           const columnItems = items.filter((item) => item.status === status);
 
