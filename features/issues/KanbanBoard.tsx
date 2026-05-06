@@ -12,7 +12,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, GripVertical, UserRound } from "lucide-react";
 import type { BoardItem, Status } from "@/types";
 
 const columns: Status[] = ["To Do", "In Progress", "Done"];
@@ -32,8 +32,8 @@ function DroppableColumn({ status, children }: { status: Status; children: React
 
   return (
     <section
-      className={`flex min-h-96 flex-col rounded-lg border border-slate-200 bg-slate-100 ${
-        isOver ? "ring-2 ring-blue-500" : ""
+      className={`flex min-h-[24rem] flex-col rounded-md border border-slate-200 bg-slate-50 ${
+        isOver ? "bg-blue-50 ring-2 ring-blue-500" : ""
       }`}
       ref={setNodeRef}
     >
@@ -58,48 +58,53 @@ function TaskCard({ item, onOpen }: { item: BoardItem; onOpen: (item: BoardItem)
 
   return (
     <article
-      className={`rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-300 ${
-        isDragging ? "opacity-60" : ""
+      className={`cursor-grab rounded-md border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-blue-300 hover:shadow-md active:cursor-grabbing ${
+        isDragging ? "opacity-60 ring-2 ring-blue-500" : ""
       }`}
       ref={setNodeRef}
       style={style}
+      {...listeners}
+      {...attributes}
     >
       <button className="w-full text-left" onClick={() => onOpen(item)} type="button">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-sm font-semibold leading-5 text-slate-950">{item.title}</h3>
-          {isDefault && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">Base</span>}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-[13px] font-semibold leading-5 text-slate-950">{item.title}</h3>
+          {isDefault && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">Base</span>}
         </div>
-        {item.description && <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">{item.description}</p>}
+        {item.description && <p className="mt-1.5 line-clamp-2 text-[11px] leading-4 text-slate-600">{item.description}</p>}
       </button>
 
-      <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="mt-2.5 flex items-center justify-between gap-2">
         <span
-          className={`rounded px-2 py-1 text-xs font-semibold ${
+          className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ring-1 ${
             item.priority === "High"
-              ? "bg-red-50 text-red-700"
+              ? "bg-red-50 text-red-700 ring-red-100"
               : item.priority === "Medium"
-                ? "bg-amber-50 text-amber-700"
-                : "bg-emerald-50 text-emerald-700"
+                ? "bg-amber-50 text-amber-700 ring-amber-100"
+                : "bg-emerald-50 text-emerald-700 ring-emerald-100"
           }`}
         >
           {item.priority}
         </span>
         {"dueDate" in item && item.dueDate && (
-          <span className="flex items-center gap-1 text-xs text-slate-500">
-            <CalendarDays size={13} />
+          <span className="flex items-center gap-1 text-[11px] text-slate-500">
+            <CalendarDays size={12} />
             {new Date(item.dueDate).toLocaleDateString()}
           </span>
         )}
       </div>
 
-      <button
-        className="mt-3 w-full touch-none select-none cursor-grab rounded-md border border-slate-200 px-2 py-2 text-xs font-semibold text-slate-500 active:cursor-grabbing"
-        type="button"
-        {...listeners}
-        {...attributes}
-      >
-        Drag
-      </button>
+      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
+        <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-slate-600">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+            <UserRound size={12} />
+          </span>
+          <span className="truncate">{item.assigneeName || "Unassigned"}</span>
+        </span>
+        <span className="rounded-md p-1 text-slate-400" title="Drag issue">
+          <GripVertical size={15} />
+        </span>
+      </div>
     </article>
   );
 }
@@ -123,22 +128,22 @@ export function KanbanBoard({ items, onMove, onOpen }: Props) {
 
   return (
     <DndContext collisionDetection={closestCorners} sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 gap-4 md:min-w-[780px] md:grid-cols-3 lg:min-w-0">
+      <div className="grid grid-cols-1 gap-3 md:min-w-[760px] md:grid-cols-3 xl:min-w-0">
         {columns.map((status) => {
           const columnItems = items.filter((item) => item.status === status);
 
           return (
             <DroppableColumn key={status} status={status}>
-              <header className="flex items-center justify-between border-b border-slate-200 px-3 py-3">
-                <h2 className="text-sm font-semibold text-slate-800">{status}</h2>
-                <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-600">{columnItems.length}</span>
+              <header className="flex items-center justify-between border-b border-slate-200 px-2.5 py-2.5">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">{status}</h2>
+                <span className="rounded-full bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">{columnItems.length}</span>
               </header>
-              <div className="flex flex-1 flex-col gap-3 p-3">
+              <div className="flex flex-1 flex-col gap-2.5 p-2.5">
                 {columnItems.map((item) => (
                   <TaskCard item={item} key={itemId(item)} onOpen={onOpen} />
                 ))}
                 {!columnItems.length && (
-                  <div className="rounded-lg border border-dashed border-slate-300 p-4 text-center text-sm text-slate-500">
+                  <div className="rounded-md border border-dashed border-slate-300 p-3 text-center text-xs text-slate-500">
                     No issues
                   </div>
                 )}

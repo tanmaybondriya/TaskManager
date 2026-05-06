@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { SyntheticEvent } from "react";
 import { apiFetch } from "@/lib/api";
 
 type Props = {
@@ -17,7 +18,7 @@ export function AuthForm({ mode }: Props) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(event: FormEvent) {
+  async function onSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setLoading(true);

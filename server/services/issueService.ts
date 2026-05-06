@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { Issue, ISSUE_PRIORITIES, ISSUE_STATUSES } from "@/server/models/Issue";
+import { User } from "@/server/models/User";
 import { HttpError } from "@/server/utils/httpError";
 import { getProjectForUser } from "./projectService";
 
@@ -28,6 +29,23 @@ function activity(actor: Actor, action: string, field?: string, from?: string, t
   };
 }
 
+async function getAssignee(assigneeId?: string) {
+  if (!assigneeId) {
+    return null;
+  }
+
+  if (!Types.ObjectId.isValid(assigneeId)) {
+    throw new HttpError(400, "Invalid assignee");
+  }
+
+  const assignee = await User.findById(assigneeId).select("name");
+  if (!assignee) {
+    throw new HttpError(404, "Assignee not found");
+  }
+
+  return assignee;
+}
+
 export async function listIssues(
   projectId: string,
   userId: string,
@@ -46,14 +64,15 @@ export async function listIssues(
 
 export async function createIssue(projectId: string, actor: Actor, input: IssueInput) {
   await getProjectForUser(projectId, actor.id);
+  const assignee = await getAssignee(input.assignee);
 
   return Issue.create({
     ...input,
     project: projectId,
     reporter: actor.id,
     reporterName: actor.name,
-    assignee: input.assignee || undefined,
-    assigneeName: input.assignee ? actor.name : "",
+    assignee: assignee?._id,
+    assigneeName: assignee?.name ?? "",
     dueDate: input.dueDate || undefined,
     activity: [activity(actor, "created issue")],
   });
@@ -75,12 +94,14 @@ export async function getIssueForUser(issueId: string, userId: string) {
 
 export async function updateIssue(issueId: string, actor: Actor, input: Partial<IssueInput>) {
   const issue = await getIssueForUser(issueId, actor.id);
+  const assignee = input.assignee !== undefined ? await getAssignee(input.assignee) : undefined;
 
   const trackedFields = ["title", "description", "status", "priority", "assignee", "dueDate"] as const;
   for (const field of trackedFields) {
     if (input[field] !== undefined) {
-      const oldValue = issue[field] ? String(issue[field]) : "";
-      const newValue = input[field] ? String(input[field]) : "";
+      const oldValue = field === "assignee" ? issue.assigneeName || "Unassigned" : issue[field] ? String(issue[field]) : "";
+      const newValue =
+        field === "assignee" ? assignee?.name ?? "Unassigned" : input[field] ? String(input[field]) : "";
       if (oldValue !== newValue) {
         issue.activity.push(activity(actor, `updated ${field}`, field, oldValue, newValue));
       }
@@ -92,8 +113,8 @@ export async function updateIssue(issueId: string, actor: Actor, input: Partial<
   if (input.status !== undefined) issue.status = input.status;
   if (input.priority !== undefined) issue.priority = input.priority;
   if (input.assignee !== undefined) {
-    issue.assignee = input.assignee ? new Types.ObjectId(input.assignee) : undefined;
-    issue.assigneeName = input.assignee ? actor.name : "";
+    issue.assignee = assignee?._id;
+    issue.assigneeName = assignee?.name ?? "";
   }
   if (input.dueDate !== undefined) {
     issue.dueDate = input.dueDate ? new Date(input.dueDate) : undefined;

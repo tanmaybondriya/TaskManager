@@ -54,6 +54,8 @@ export type DefaultTask = {
   status: Status;
   priority: Priority;
   description?: string;
+  assignee?: string;
+  assigneeName?: string;
   isDefault: true;
 };
 
